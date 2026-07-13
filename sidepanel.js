@@ -64,7 +64,6 @@ function onMessage(msg) {
 
     case 'done':
       hideMulti('.progress');
-      triggerDownload(msg);
       showSummary(msg);
       document.getElementById('fetch-btn').disabled = false;
       break;
@@ -170,18 +169,6 @@ async function startFetch() {
   } else {
     document.getElementById('fetch-btn').disabled = false;
     showError('Connection lost. Close and reopen the side panel.');
-  }
-}
-
-async function triggerDownload(msg) {
-  if (!msg.zipData) return;
-  try {
-    const blob = new Blob([msg.zipData], { type: 'application/zip' });
-    const url = URL.createObjectURL(blob);
-    await chrome.downloads.download({ url, filename: msg.zipName, saveAs: true });
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-  } catch (e) {
-    showError('Download failed: ' + e.message);
   }
 }
 
