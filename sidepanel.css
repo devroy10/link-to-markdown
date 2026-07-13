@@ -1,0 +1,146 @@
+:root {
+  --bg: #1e1e2e;
+  --surface: #2a2a3c;
+  --surface-hover: #333350;
+  --text: #cdd6f4;
+  --text-dim: #6c7086;
+  --accent: #89b4fa;
+  --accent-hover: #74c7ec;
+  --accent-text: #1e1e2e;
+  --green: #a6e3a1;
+  --red: #f38ba8;
+  --border: #313244;
+  --radius: 6px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #eff1f5;
+    --surface: #ccd0da;
+    --surface-hover: #bcc0cc;
+    --text: #4c4f69;
+    --text-dim: #6c6f85;
+    --accent: #1e66f5;
+    --accent-hover: #2a7bfa;
+    --accent-text: #ffffff;
+    --green: #40a02b;
+    --red: #d20f39;
+    --border: #9ca0b0;
+  }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px 8px; border-bottom: 1px solid var(--border);
+}
+
+header h1 { font-size: 15px; font-weight: 600; }
+
+.btn-sm {
+  font-size: 12px; padding: 4px 10px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  cursor: pointer; white-space: nowrap;
+}
+.btn-sm:hover { background: var(--surface-hover); }
+
+.btn-primary {
+  width: 100%; padding: 9px 16px; border-radius: var(--radius);
+  border: none; background: var(--accent); color: var(--accent-text);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.status-bar {
+  padding: 8px 14px; font-size: 12px; color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+
+.controls {
+  padding: 6px 14px; display: flex; gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.link-list {
+  flex: 1; overflow-y: auto; padding: 4px 0;
+}
+
+.link-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 14px; cursor: pointer;
+}
+.link-item:hover { background: var(--surface); }
+.link-item label {
+  flex: 1; min-width: 0; cursor: pointer;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.link-item input[type="checkbox"] {
+  margin-top: 3px; accent-color: var(--accent); flex-shrink: 0;
+}
+.link-text {
+  font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.link-url {
+  font-size: 11px; color: var(--text-dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.link-item.failed .link-text { color: var(--red); }
+
+.footer {
+  padding: 10px 14px 12px; border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.selection-info { font-size: 12px; color: var(--text-dim); text-align: center; }
+
+.progress {
+  padding: 10px 14px 12px; border-top: 1px solid var(--border);
+}
+.progress-track {
+  height: 4px; background: var(--surface); border-radius: 2px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--accent); width: 0%; transition: width 0.2s;
+}
+.progress-detail {
+  display: flex; justify-content: space-between; margin-top: 6px;
+  font-size: 12px; color: var(--text-dim);
+}
+.fails { color: var(--red); }
+
+.cancel-btn {
+  margin-top: 8px; width: 100%; text-align: center; color: var(--red);
+  border-color: var(--red);
+}
+.cancel-btn:hover { background: var(--red); color: var(--bg); }
+.cancel-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.summary { padding: 12px 14px; border-top: 1px solid var(--border); }
+.summary h3 { font-size: 14px; margin-bottom: 4px; }
+.summary p { font-size: 12px; color: var(--text-dim); }
+.failed-list { margin-top: 8px; }
+.failed-list h4 { font-size: 12px; color: var(--red); margin-bottom: 4px; }
+.failed-list ul { list-style: none; font-size: 11px; color: var(--text-dim); }
+.failed-list li {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 1px 0;
+}
+
+.error {
+  padding: 10px 14px; color: var(--red); font-size: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.hidden { display: none !important; }

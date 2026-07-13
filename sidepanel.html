@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Link to Markdown</h1>
+      <button id="scan-btn" class="btn-sm">Scan Page</button>
+    </header>
+
+    <div id="status-bar" class="status-bar">
+      <span id="link-count">Scanning...</span>
+    </div>
+
+    <div id="controls" class="controls hidden">
+      <button id="select-all-btn" class="btn-sm">Select All</button>
+      <button id="select-none-btn" class="btn-sm">Select None</button>
+    </div>
+
+    <div id="link-list" class="link-list"></div>
+
+    <div id="footer" class="footer hidden">
+      <div class="selection-info">
+        <span id="selected-count">0</span> of <span id="total-count">0</span> selected
+      </div>
+      <button id="fetch-btn" class="btn-primary">Fetch &amp; Download</button>
+    </div>
+
+    <div id="progress" class="progress hidden">
+      <div class="progress-track">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <div class="progress-detail">
+        <span id="progress-text">0 / 0 fetched</span>
+        <span id="progress-fails" class="fails hidden"></span>
+      </div>
+      <button id="cancel-btn" class="btn-sm cancel-btn">Cancel</button>
+    </div>
+
+    <div id="summary" class="summary hidden">
+      <h3>Done</h3>
+      <p id="summary-text"></p>
+      <div id="failed-list" class="failed-list hidden">
+        <h4>Failed fetches:</h4>
+        <ul id="failed-urls"></ul>
+      </div>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+  </div>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

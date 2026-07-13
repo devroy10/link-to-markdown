@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Link to Markdown",
+  "version": "1.0.0",
+  "description": "Extract links from a page, fetch them as markdown via r.jina.ai, and download as zip",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://r.jina.ai/*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Link to Markdown"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
