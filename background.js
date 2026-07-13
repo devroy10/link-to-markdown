@@ -136,11 +136,26 @@ async function handleFetchAndDownload(urls, originUrl, port, isAborted) {
   await Promise.all(workers);
   if (isAborted()) { port.postMessage({ type: 'cancelled' }); return; }
 
+  const succeeded = [];
+  const failed = [];
+
+  for (const r of results) {
+    if (r && r.success && r.markdown) succeeded.push(r);
+    else if (r && !r.success) failed.push(r);
+  }
+
+  if (succeeded.length === 0) {
+    port.postMessage({
+      type: 'done', zipData: null, zipName: null, total,
+      succeeded: 0, failed: failed.map(r => ({ url: r.url, error: r.error })),
+    });
+    return;
+  }
+
   const zip = new JSZip();
   const usedNames = new Set();
 
-  for (const r of results) {
-    if (!r || !r.success || !r.markdown) continue;
+  for (const r of succeeded) {
     const filename = sanitizeFilename(r.title) + '.md';
     const uniqueName = getUniqueName(usedNames, filename);
     usedNames.add(uniqueName);
@@ -151,9 +166,11 @@ async function handleFetchAndDownload(urls, originUrl, port, isAborted) {
   const domain = extractDomain(originUrl);
   const zipName = `${domain}-${getTimestamp()}.zip`;
 
-  const succeeded = results.filter(r => r && r.success && r.markdown).length;
-  const failed = results.filter(r => r && !r.success).map(r => ({ url: r.url, error: r.error }));
-  port.postMessage({ type: 'done', zipData, zipName, total, succeeded, failed });
+  port.postMessage({
+    type: 'done', zipData, zipName, total,
+    succeeded: succeeded.length,
+    failed: failed.map(r => ({ url: r.url, error: r.error })),
+  });
 }
 
 async function fetchWithRetry(url, ctx = {}) {
