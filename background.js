@@ -162,24 +162,12 @@ async function handleFetchAndDownload(urls, originUrl, port, isAborted) {
     zip.file(uniqueName, r.markdown);
   }
 
-  const zipData = await zip.generateAsync({ type: 'arraybuffer' });
+  const zipData = await zip.generateAsync({ type: 'base64' });
   const domain = extractDomain(originUrl);
   const zipName = `${domain}-${getTimestamp()}.zip`;
 
-  try {
-    const blob = new Blob([zipData], { type: 'application/zip' });
-    const url = URL.createObjectURL(blob);
-    await chrome.downloads.download({ url, filename: zipName, saveAs: true });
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-  } catch (e) {
-    port.postMessage({
-      type: 'error', message: 'Download failed: ' + e.message,
-    });
-    return;
-  }
-
   port.postMessage({
-    type: 'done', total,
+    type: 'done', zipData, zipName, total,
     succeeded: succeeded.length,
     failed: failed.map(r => ({ url: r.url, error: r.error })),
   });

@@ -64,6 +64,7 @@ function onMessage(msg) {
 
     case 'done':
       hideMulti('.progress');
+      triggerDownload(msg);
       showSummary(msg);
       document.getElementById('fetch-btn').disabled = false;
       setTimeout(() => {
@@ -71,6 +72,11 @@ function onMessage(msg) {
         document.getElementById('footer').classList.remove('hidden');
         document.getElementById('controls').classList.remove('hidden');
       }, 5000);
+      break;
+
+    case 'error':
+      showError(msg.message);
+      document.getElementById('fetch-btn').disabled = false;
       break;
 
     case 'cancelled':
@@ -174,6 +180,21 @@ async function startFetch() {
   } else {
     document.getElementById('fetch-btn').disabled = false;
     showError('Connection lost. Close and reopen the side panel.');
+  }
+}
+
+async function triggerDownload(msg) {
+  if (!msg.zipData || msg.succeeded === 0) return;
+  try {
+    const binary = atob(msg.zipData);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/zip' });
+    const url = URL.createObjectURL(blob);
+    await chrome.downloads.download({ url, filename: msg.zipName, saveAs: true });
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) {
+    showError('Download failed: ' + e.message);
   }
 }
 
