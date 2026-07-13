@@ -66,6 +66,11 @@ function onMessage(msg) {
       hideMulti('.progress');
       showSummary(msg);
       document.getElementById('fetch-btn').disabled = false;
+      setTimeout(() => {
+        hideMulti('.summary', '#failed-list');
+        document.getElementById('footer').classList.remove('hidden');
+        document.getElementById('controls').classList.remove('hidden');
+      }, 5000);
       break;
 
     case 'cancelled':
