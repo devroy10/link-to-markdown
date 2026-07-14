@@ -1,4 +1,7 @@
-const state = { links: [], selected: new Set(), port: null, failedCount: 0 };
+const state = {
+  links: [], selected: new Set(), port: null, failedCount: 0,
+  groups: [], linkGroupMap: new Map(),
+};
 
 document.addEventListener('DOMContentLoaded', init);
 
@@ -10,15 +13,21 @@ async function init() {
   document.getElementById('scan-btn').addEventListener('click', scanLinks);
   document.getElementById('select-all-btn').addEventListener('click', selectAll);
   document.getElementById('select-none-btn').addEventListener('click', selectNone);
+  document.getElementById('copy-btn').addEventListener('click', copySelected);
   document.getElementById('fetch-btn').addEventListener('click', startFetch);
   document.getElementById('cancel-btn').addEventListener('click', cancelFetch);
+  document.getElementById('options-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.runtime.openOptionsPage();
+  });
 
+  state.groups = await loadGroupState();
   await scanLinks();
 }
 
 function scanLinks() {
   showLoading('Scanning page...');
-  hideMulti('.footer', '.progress', '.summary', '.error', '#controls');
+  hideMulti('.footer', '.progress', '.summary', '.error', '#controls', '#groups');
 
   if (!state.port) {
     showError('Connection lost. Close and reopen the side panel.');
@@ -32,8 +41,9 @@ function onMessage(msg) {
   switch (msg.type) {
     case 'links':
       state.links = msg.links;
-      state.selected = new Set(msg.links.map(l => l.url));
-      state.failedCount = 0;
+      classifyLinks();
+      applyGroupDefaults();
+      renderGroups();
       renderLinks();
       showControls2();
       document.getElementById('link-count').textContent =
@@ -71,6 +81,7 @@ function onMessage(msg) {
         hideMulti('.summary', '#failed-list');
         document.getElementById('footer').classList.remove('hidden');
         document.getElementById('controls').classList.remove('hidden');
+        document.getElementById('groups').classList.remove('hidden');
       }, 5000);
       break;
 
@@ -84,10 +95,102 @@ function onMessage(msg) {
       document.getElementById('fetch-btn').disabled = false;
       document.getElementById('footer').classList.remove('hidden');
       document.getElementById('controls').classList.remove('hidden');
+      document.getElementById('groups').classList.remove('hidden');
       document.getElementById('link-count').textContent =
         `${state.selected.size} link${state.selected.size === 1 ? '' : 's'} selected`;
       break;
   }
+}
+
+function classifyLinks() {
+  state.linkGroupMap = new Map();
+  for (const link of state.links) {
+    const matched = [];
+    for (const g of state.groups) {
+      if (g.enabled && matchUrlAgainstGroup(g, link.url)) matched.push(g.id);
+    }
+    state.linkGroupMap.set(link.url, matched);
+  }
+}
+
+function applyGroupDefaults() {
+  state.selected = new Set(state.links.map(l => l.url));
+  for (const g of state.groups) {
+    if (!g.enabled || g.defaultSelected) continue;
+    for (const link of state.links) {
+      if (state.linkGroupMap.get(link.url)?.includes(g.id)) {
+        state.selected.delete(link.url);
+      }
+    }
+  }
+}
+
+function renderGroups() {
+  const container = document.getElementById('groups');
+  container.innerHTML = '';
+
+  const visible = state.groups.filter(g => g.enabled);
+  if (visible.length === 0) { container.classList.add('hidden'); return; }
+
+  container.classList.remove('hidden');
+  for (const g of visible) {
+    const count = state.links.filter(l => state.linkGroupMap.get(l.url)?.includes(g.id)).length;
+    if (count === 0) continue;
+
+    const row = document.createElement('div');
+    row.className = 'group-row';
+
+    const name = document.createElement('span');
+    name.className = 'group-name';
+    name.textContent = g.name;
+
+    const countEl = document.createElement('span');
+    countEl.className = 'group-count';
+    countEl.textContent = count;
+
+    const toggle = document.createElement('label');
+    toggle.className = 'toggle';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = isGroupActive(g);
+    cb.addEventListener('change', () => toggleGroup(g.id, cb.checked));
+
+    const slider = document.createElement('span');
+    slider.className = 'slider';
+
+    toggle.appendChild(cb);
+    toggle.appendChild(slider);
+    row.appendChild(name);
+    row.appendChild(countEl);
+    row.appendChild(toggle);
+    container.appendChild(row);
+  }
+}
+
+function isGroupActive(g) {
+  const members = state.links.filter(l => state.linkGroupMap.get(l.url)?.includes(g.id));
+  if (members.length === 0) return true;
+  return members.some(l => state.selected.has(l.url));
+}
+
+function toggleGroup(groupId, on) {
+  for (const link of state.links) {
+    if (state.linkGroupMap.get(link.url)?.includes(groupId)) {
+      if (on) state.selected.add(link.url);
+      else state.selected.delete(link.url);
+    }
+  }
+  updateCheckboxStates();
+  updateSelectionCount();
+}
+
+function updateCheckboxStates() {
+  document.querySelectorAll('.link-item').forEach(item => {
+    const url = item.dataset.url;
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = state.selected.has(url);
+  });
 }
 
 function renderLinks() {
@@ -106,6 +209,7 @@ function renderLinks() {
       if (cb.checked) state.selected.add(link.url);
       else state.selected.delete(link.url);
       updateSelectionCount();
+      renderGroups();
     });
 
     const info = document.createElement('div');
@@ -145,14 +249,30 @@ function updateSelectionCount() {
 
 function selectAll() {
   state.selected = new Set(state.links.map(l => l.url));
-  document.querySelectorAll('.link-item input[type="checkbox"]').forEach(cb => cb.checked = true);
+  updateCheckboxStates();
   updateSelectionCount();
+  renderGroups();
 }
 
 function selectNone() {
   state.selected.clear();
-  document.querySelectorAll('.link-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+  updateCheckboxStates();
   updateSelectionCount();
+  renderGroups();
+}
+
+async function copySelected() {
+  const urls = state.links.filter(l => state.selected.has(l.url)).map(l => l.url);
+  if (urls.length === 0) return;
+  try {
+    await navigator.clipboard.writeText(urls.join('\n'));
+    const btn = document.getElementById('copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  } catch {
+    showError('Failed to copy to clipboard.');
+  }
 }
 
 function cancelFetch() {
@@ -169,7 +289,7 @@ async function startFetch() {
   if (urls.length === 0) { showError('No links selected.'); return; }
 
   document.getElementById('fetch-btn').disabled = true;
-  hideMulti('.footer', '.summary', '.error', '#controls');
+  hideMulti('.footer', '.summary', '.error', '#controls', '#groups');
   showProgress();
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -225,6 +345,7 @@ function showSummary(msg) {
 function showLoading(text) {
   document.getElementById('link-count').textContent = text;
   document.getElementById('link-list').innerHTML = '';
+  document.getElementById('groups').classList.add('hidden');
 }
 
 function showError(msg) {

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link to Markdown — Group Settings</title>
+  <style>
+    :root {
+      --bg: #1e1e2e; --surface: #2a2a3c; --surface-hover: #333350;
+      --text: #cdd6f4; --text-dim: #6c7086;
+      --accent: #89b4fa; --accent-hover: #74c7ec;
+      --accent-text: #1e1e2e;
+      --green: #a6e3a1; --red: #f38ba8; --border: #313244;
+      --radius: 6px;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #eff1f5; --surface: #ccd0da; --surface-hover: #bcc0cc;
+        --text: #4c4f69; --text-dim: #6c6f85;
+        --accent: #1e66f5; --accent-hover: #2a7bfa;
+        --accent-text: #ffffff;
+        --green: #40a02b; --red: #d20f39; --border: #9ca0b0;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px; color: var(--text); background: var(--bg);
+      padding: 24px; max-width: 600px; margin: 0 auto;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1 { font-size: 20px; margin-bottom: 20px; }
+    h2 { font-size: 16px; margin-bottom: 12px; }
+    h3 { font-size: 14px; margin-bottom: 8px; }
+    p { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+
+    .section { margin-bottom: 28px; }
+
+    .group-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px;
+    }
+    .group-card.built-in { opacity: 0.9; }
+    .group-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .group-info { flex: 1; min-width: 0; }
+    .group-name { font-weight: 600; font-size: 13px; }
+    .group-name .badge {
+      font-size: 10px; font-weight: 400; color: var(--text-dim);
+      background: var(--bg); padding: 1px 6px; border-radius: 3px; margin-left: 6px;
+    }
+    .group-patterns {
+      font-size: 11px; color: var(--text-dim); margin-top: 4px;
+      word-break: break-all;
+    }
+    .group-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    .toggle {
+      position: relative; width: 36px; height: 20px; cursor: pointer; flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider {
+      position: absolute; inset: 0; background: var(--surface);
+      border-radius: 20px; border: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .toggle .slider::before {
+      content: ''; position: absolute; width: 16px; height: 16px;
+      left: 1px; bottom: 1px; background: var(--text-dim);
+      border-radius: 50%; transition: transform 0.2s, background 0.2s;
+    }
+    .toggle input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+    .toggle input:checked + .slider::before { transform: translateX(16px); background: var(--accent-text); }
+
+    .btn {
+      font-size: 12px; padding: 5px 12px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--surface-hover); }
+    .btn-primary {
+      background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+      font-weight: 600;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-danger { color: var(--red); border-color: var(--red); }
+    .btn-danger:hover { background: var(--red); color: var(--bg); }
+    .btn-sm { padding: 3px 8px; font-size: 11px; }
+
+    .inline-form {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+    }
+    .inline-form input {
+      flex: 1; min-width: 120px; padding: 5px 8px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg); color: var(--text);
+      font-size: 12px;
+    }
+    .inline-form input:focus { outline: none; border-color: var(--accent); }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; width: 90%; max-width: 420px;
+    }
+    .modal h3 { margin-bottom: 12px; }
+    .modal label { display: block; font-size: 12px; color: var(--text-dim); margin: 8px 0 3px; }
+    .modal input, .modal textarea {
+      width: 100%; padding: 6px 8px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      font-size: 13px; font-family: inherit;
+    }
+    .modal input:focus, .modal textarea:focus { outline: none; border-color: var(--accent); }
+    .modal textarea { resize: vertical; min-height: 60px; }
+    .modal .hint { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+
+    .custom-group-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+    }
+    .custom-group-item:last-child { border-bottom: none; }
+    .custom-group-info { flex: 1; min-width: 0; }
+    .custom-group-info .name { font-size: 13px; }
+    .custom-group-info .detail { font-size: 11px; color: var(--text-dim); }
+    .custom-group-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    .empty-state { font-size: 13px; color: var(--text-dim); padding: 12px 0; }
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--green); color: var(--bg); padding: 8px 18px;
+      border-radius: var(--radius); font-size: 13px; font-weight: 600;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <h1>Link to Markdown — Groups</h1>
+  <p>Toggle built-in groups on or off, and manage your custom groups. Disabled groups are hidden from the side panel.</p>
+
+  <div class="section">
+    <h2>Built-in Groups</h2>
+    <div id="builtin-list"></div>
+  </div>
+
+  <div class="section">
+    <h2>Custom Groups</h2>
+    <div id="custom-list"></div>
+    <button id="add-custom-btn" class="btn btn-primary">+ Add Custom Group</button>
+  </div>
+
+  <div class="section">
+    <button id="reset-btn" class="btn btn-danger">Reset to Defaults</button>
+  </div>
+
+  <div id="modal" class="modal-overlay">
+    <div class="modal">
+      <h3 id="modal-title">Custom Group</h3>
+      <label for="modal-name">Group name</label>
+      <input id="modal-name" placeholder="e.g. Documentation">
+      <label for="modal-paths">Path patterns (one per line)</label>
+      <textarea id="modal-paths" placeholder="/docs&#10;/tutorials&#10;/api"></textarea>
+      <div class="hint">Matched against the URL pathname. Exact match after trailing-slash normalization.</div>
+      <label for="modal-domains">Domain patterns (one per line)</label>
+      <textarea id="modal-domains" placeholder="docs.example.com&#10;help.example.com"></textarea>
+      <div class="hint">Matched against the URL hostname. Exact match.</div>
+      <label>
+        <input id="modal-selected" type="checkbox"> Select by default
+      </label>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn">Cancel</button>
+        <button id="modal-save" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Saved</div>
+
+  <script src="default-groups.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

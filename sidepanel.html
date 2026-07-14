@@ -9,7 +9,10 @@
   <div id="app">
     <header>
       <h1>Link to Markdown</h1>
-      <button id="scan-btn" class="btn-sm">Scan Page</button>
+      <div class="header-actions">
+        <a href="#" id="options-link" class="header-link" title="Manage groups">Groups</a>
+        <button id="scan-btn" class="btn-sm">Scan</button>
+      </div>
     </header>
 
     <div id="status-bar" class="status-bar">
@@ -19,7 +22,10 @@
     <div id="controls" class="controls hidden">
       <button id="select-all-btn" class="btn-sm">Select All</button>
       <button id="select-none-btn" class="btn-sm">Select None</button>
+      <button id="copy-btn" class="btn-sm">Copy</button>
     </div>
+
+    <div id="groups" class="groups hidden"></div>
 
     <div id="link-list" class="link-list"></div>
 
@@ -52,6 +58,7 @@
 
     <div id="error" class="error hidden"></div>
   </div>
+  <script src="default-groups.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

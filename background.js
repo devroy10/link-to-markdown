@@ -52,33 +52,6 @@ async function handleGetLinks(port) {
 }
 
 function extractLinksInline() {
-  const excluded = [
-    '/', '/home', '/about', '/contact', '/privacy', '/terms',
-    '/login', '/signup', '/logout', '/register', '/forgot-password',
-    '/reset-password', '/faq', '/help', '/support', '/sitemap',
-    '/search', '/blog', '/news', '/index', '/index.html', '/index.php',
-  ];
-  const excludedSet = new Set(excluded);
-
-  const socialDomains = new Set([
-    'facebook.com', 'www.facebook.com',
-    'twitter.com', 'www.twitter.com', 'x.com', 'www.x.com',
-    'linkedin.com', 'www.linkedin.com',
-    'instagram.com', 'www.instagram.com',
-    'youtube.com', 'www.youtube.com', 'youtu.be',
-    'tiktok.com', 'www.tiktok.com',
-    'reddit.com', 'www.reddit.com',
-    'pinterest.com', 'www.pinterest.com',
-    'snapchat.com', 'www.snapchat.com',
-    'whatsapp.com', 'www.whatsapp.com',
-    't.me', 'telegram.me', 'telegram.org',
-    'discord.com', 'discord.gg',
-    'medium.com', 'www.medium.com',
-    'threads.net', 'www.threads.net',
-    'bsky.app', 'www.bsky.app',
-    'twitch.tv', 'www.twitch.tv',
-  ]);
-
   const links = [];
   const seen = new Set();
 
@@ -91,13 +64,6 @@ function extractLinksInline() {
     catch { return; }
 
     if (!href.startsWith('http://') && !href.startsWith('https://')) return;
-
-    try {
-      const p = new URL(href);
-      const path = p.pathname.replace(/\/$/, '') || '/';
-      if (excludedSet.has(path)) return;
-      if (socialDomains.has(p.hostname)) return;
-    } catch { return; }
 
     if (seen.has(href)) return;
     seen.add(href);
